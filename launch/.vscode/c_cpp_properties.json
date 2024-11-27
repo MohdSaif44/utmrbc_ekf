@@ -1,0 +1,27 @@
+{
+  "configurations": [
+    {
+      "browse": {
+        "databaseFilename": "${default}",
+        "limitSymbolsToIncludedHeaders": false
+      },
+      "includePath": [
+        "/home/saif/microros_ws/install/micro_ros_agent/include/**",
+        "/home/saif/microros_ws/install/micro_ros_msgs/include/**",
+        "/opt/ros/humble/include/**",
+        "/home/saif/STM32Cube/Repository/STM32Cube_FW_F4_V1.28.0/Middlewares/Third_Party/mbedTLS/include/**",
+        "/home/saif/microros_ws/src/uros/micro-ROS-Agent/micro_ros_agent/include/**",
+        "/home/saif/ros2_ws/src/ros_tutorials/turtlesim/include/**",
+        "/home/saif/ros2_ws/src/uros/micro-ROS-Agent/micro_ros_agent/include/**",
+        "/home/saif/src/uros/micro-ROS-Agent/micro_ros_agent/include/**",
+        "/usr/include/**"
+      ],
+      "name": "ROS",
+      "intelliSenseMode": "gcc-x64",
+      "compilerPath": "/usr/bin/gcc",
+      "cStandard": "gnu11",
+      "cppStandard": "c++14"
+    }
+  ],
+  "version": 4
+}
