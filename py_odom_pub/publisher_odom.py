@@ -25,7 +25,7 @@ class Odom_Publisher(Node):
 
     def __init__(self):
         super().__init__('Odom_publisher')
-        timer_period = 0.005
+        timer_period = 0.007
         self.Odom_msg = Odom()
         self.timer = self.create_timer(timer_period, self.timer_callback)
      
@@ -58,6 +58,7 @@ class Odom_Publisher(Node):
 
         self.time = time.time()
 
+        self.imu_yaw = msg.imu_yaw
         self.Odom_msg.pose.pose.position.x = msg.odom_pose_x
         self.Odom_msg.pose.pose.position.y = msg.odom_pose_y
         self.Odom_msg.pose.pose.position.z = 0.0
@@ -104,7 +105,7 @@ class Odom_Publisher(Node):
 
     def timer_callback(self):
 
-        self.error_over_time = self.error_over_time + 0.0002
+        self.error_over_time = self.error_over_time + 0.0001
         self.publisher_.publish(self.Odom_msg)
 
 def main(args=None):

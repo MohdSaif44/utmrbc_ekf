@@ -25,7 +25,7 @@ class Imu_Publisher(Node):
     def __init__(self):
         super().__init__('Imu_publisher')
         self.Imu_msg = Imu()
-        timer_period = 0.05
+        timer_period = 0.007
         self.timer = self.create_timer(timer_period, self.timer_callback)
         qos_profile = QoSProfile(
             depth=1,
