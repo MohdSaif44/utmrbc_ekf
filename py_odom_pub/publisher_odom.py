@@ -104,8 +104,10 @@ class Odom_Publisher(Node):
 
 
     def timer_callback(self):
-
-        self.error_over_time = self.error_over_time + 0.0001
+        if(self.Odom_msg.pose.pose.position.x == 0.0 and self.Odom_msg.pose.pose.position.y== 0.0):
+            self.error_over_time = 0.0
+        else:
+            self.error_over_time = self.error_over_time + 0.0001
         self.publisher_.publish(self.Odom_msg)
 
 def main(args=None):

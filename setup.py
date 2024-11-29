@@ -24,6 +24,7 @@ setup(
             'imu_data = py_odom_pub.publisher_imu:main',
             'odom_data = py_odom_pub.publisher_odom:main',
             'laser_data = py_odom_pub.publisher_laser:main',
+            'local_data = py_odom_pub.publisher_local:main',
 
         ],
     },
