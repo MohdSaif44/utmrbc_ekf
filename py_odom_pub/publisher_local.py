@@ -55,7 +55,7 @@ class Local_Publisher(Node):
         self.Odom_msg.local_x = msg.pose.pose.position.x
         self.Odom_msg.local_y = msg.pose.pose.position.y
         self.time = time.time()
-        self.get_logger().info('local_x:"%f" local_y"%f"' % (self.Odom_msg.local_x  , self.Odom_msg.local_y))
+        # self.get_logger().info('local_x:"%f" local_y"%f"' % (self.Odom_msg.local_x  , self.Odom_msg.local_y))
 
 
     def timer_callback(self):

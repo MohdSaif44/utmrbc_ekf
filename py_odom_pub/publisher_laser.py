@@ -59,7 +59,7 @@ class Laser_Publisher(Node):
                 self.value = self.client.read_holding_registers(200, 9)
                 self.laser_x = self.value.registers[0]/1000
                 self.laser_y = self.value.registers[4]/1000
-                self.get_logger().info('laser_x:"%f" laser_y"%f"' % (self.pos_x , self.pos_y))
+                # self.get_logger().info('laser_x:"%f" laser_y"%f"' % (self.pos_x , self.pos_y))
                 # self.get_logger().info(f"X: {self.laser_x}, Y: {self.laser_y}")
                 # else:
                 #     logging.error("Failed")

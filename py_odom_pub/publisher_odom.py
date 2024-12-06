@@ -79,8 +79,8 @@ class Odom_Publisher(Node):
         self.imu_yaw_rate = self.imu_yaw - self.prev_imu_yaw
         self.Odom_msg.twist.twist.linear.z = self.imu_yaw_rate/self.delta_time 
 
-        self.Odom_msg.twist.covariance = [0.001, 0.0, 0.0, 0.0, 0.0, 0.0,
-                                          0.0, 0.001, 0.0, 0.0, 0.0, 0.0,
+        self.Odom_msg.twist.covariance = [0.001 + self.error_over_time, 0.0, 0.0, 0.0, 0.0, 0.0,
+                                          0.0, 0.001 + self.error_over_time, 0.0, 0.0, 0.0, 0.0,
                                           0.0, 0.0, -1.0, 0.0, 0.0, 0.0,
                                           0.0, 0.0, 0.0, 0.001, 0.0, 0.0,
                                           0.0, 0.0, 0.0, 0.0, 0.001, 0.0,
@@ -100,7 +100,7 @@ class Odom_Publisher(Node):
         self.prev_imu_yaw = self.imu_yaw
         self.prev_time = self.time
 
-        self.get_logger().info('odom_x:"%f" odom_y"%f" imu_yaw"%f"' % (self.Odom_msg.pose.pose.position.x  , self.Odom_msg.pose.pose.position.y , self.imu_yaw))
+        # self.get_logger().info('odom_x:"%f" odom_y"%f" imu_yaw"%f"' % (self.Odom_msg.pose.pose.position.x  , self.Odom_msg.pose.pose.position.y , self.imu_yaw))
 
 
     def timer_callback(self):

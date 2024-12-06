@@ -65,7 +65,7 @@ class Imu_Publisher(Node):
                                                          0.0, 0.001, 0.0,
                                                          0.0, 0.0, 0.001], dtype=np.float64)
 
-        self.get_logger().info('acc_x:"%f" acc_y:"%f" yaw:"%f"' % (self.Imu_msg.linear_acceleration.x , self.Imu_msg.linear_acceleration.y, msg.imu_yaw)) 
+        # self.get_logger().info('acc_x:"%f" acc_y:"%f" yaw:"%f"' % (self.Imu_msg.linear_acceleration.x , self.Imu_msg.linear_acceleration.y, msg.imu_yaw)) 
  
     def timer_callback(self):
         self.publisher.publish(self.Imu_msg)
