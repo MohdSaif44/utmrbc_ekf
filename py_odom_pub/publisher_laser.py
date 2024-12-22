@@ -28,44 +28,96 @@ class Laser_Publisher(Node):
         super().__init__('Laser_publisher')
         timer_period = 0.02
         self.Odom_msg = Odometry()
+        
         qos_profile = QoSProfile(
             depth=1,
             history=QoSHistoryPolicy.KEEP_LAST,
             reliability=QoSReliabilityPolicy.BEST_EFFORT
         )
-        self.publisher_ = self.create_publisher(Odometry, '/Odom_laser', qos_profile)
-        self.client = ModbusTcpClient('192.168.1.250', port=502, timeout=1)
-        self.value = None
-        self.laser_x = 0.0
-        self.laser_y = 0.0
+
+        # Odometry parameters
+        self.publisher_   = self.create_publisher(Odometry, '/Odom_laser', qos_profile)
+        self.client       = ModbusTcpClient('192.168.1.250', port=502, timeout=1)
+        self.value        = None
+        self.laser_x      = 0.0
+        self.laser_y      = 0.0
         self.prev_laser_x = 0.0
         self.prev_laser_y = 0.0
-        self.pos_x = 0.0
-        self.pos_y = 0.0
-        self.delta_pos_x = 0.0
-        self.delta_pos_y = 0.0
-        self.timer = self.create_timer(timer_period, self.timer_callback)
-        self.time = time.time()
-        self.prev_time = 0.0
-        self.delta_time = 0.0
+        self.pos_x        = 0.0
+        self.pos_y        = 0.0
+        self.delta_pos_x  = 0.0
+        self.delta_pos_y  = 0.0
+        self.timer        = self.create_timer(timer_period, self.timer_callback)
+        self.time         = time.time()
+        self.prev_time    = 0.0
+        self.delta_time   = 0.0
+        
+        # Kalman Filter parameters
+        self.p_predicted_lx  = 0.0
+        self.p_predicted_ly  = 0.0
+        
+        self.x_predicted_lx  = 0.0
+        self.x_predicted_ly  = 0.0
+        
+        self.p_estemated_lx  = 0.0
+        self.p_estemated_ly  = 0.0
+        
+        self.x_estemated_lx  = 0.0
+        self.x_estemated_ly  = 0.0  
+        
+        self.Kalman_A_lx     = 1.0
+        self.Kalman_A_ly     = 1.0
+        
+        self.Kalman_Q_lx     = 0.1 # Process noise
+        self.Kalman_Q_ly     = 0.1 
+        
+        self.Kalman_H_lx     = 1.0 
+        self.Kalman_H_ly     = 1.0
+        
+        self.Kalman_Z_lx     = 0.0
+        self.Kalman_Z_ly     = 0.0
+        
+        self.Kalman_R_lx     = 0.1  # Measurement noise
+        self.Kalman_R_ly     = 0.1
+        
+        self.KalmanGain_lx   = 0.0
+        self.KalmanGain_ly   = 0.0
 
+        self.laser_x_confidence = 0.0
+        self.laser_x_confidence = 0.0
 
+    def Kalman_Filter(self, laser_x, laser_y):
+        
+        self.Kalman_Z_lx = laser_x
+        self.Kalman_Z_ly = laser_y
+
+        self.x_predicted_lx  = self.Kalman_A_lx * self.x_estemated_lx
+        self.p_predicted_lx  = self.Kalman_A_lx**2 * self.p_estemated_lx + self.Kalman_Q_lx
+        self.KalmanGain_lx   = self.p_predicted_lx * self.Kalman_H_lx * 1/(self.Kalman_H_lx * self.p_predicted_lx + self.Kalman_R_lx)
+        self.x_estemated_lx  = self.x_predicted_lx + self.KalmanGain_lx * (self.Kalman_Z_lx - self.Kalman_H_lx * self.x_predicted_lx)
+        self.p_estemated_lx  = self.p_predicted_lx - self.p_predicted_lx * self.Kalman_H_lx * self.p_predicted_lx
+
+        self.x_predicted_ly  = self.Kalman_A_ly * self.x_estemated_ly
+        self.p_predicted_ly  = self.Kalman_A_ly**2 * self.p_estemated_ly + self.Kalman_Q_ly
+        self.KalmanGain_ly   = self.p_predicted_ly * self.Kalman_H_ly * 1/(self.Kalman_H_ly * self.p_predicted_ly + self.Kalman_R_ly)
+        self.x_estemated_ly  = self.x_predicted_ly + self.KalmanGain_ly * (self.Kalman_Z_ly - self.Kalman_H_ly * self.x_predicted_ly)
+        self.p_estemated_ly  = self.p_predicted_ly - self.p_predicted_ly * self.Kalman_H_ly * self.p_predicted_ly
+
+        # Confidence for the laser data
+        self.laser_x_confidence = self.Kalman_Z_lx - self.Kalman_H_lx * self.x_predicted_lx
+        self.laser_y_confidence = self.Kalman_Z_ly - self.Kalman_H_ly * self.x_predicted_ly
 
     def timer_callback(self):
 
         if self.client.connect():
             try: 
-                # ur welcome :)
-                self.value = self.client.read_holding_registers(200, 9)
+                self.value   = self.client.read_holding_registers(200, 9)
                 self.laser_x = self.value.registers[0]/1000
                 self.laser_y = self.value.registers[4]/1000
-                # self.get_logger().info('laser_x:"%f" laser_y"%f"' % (self.pos_x , self.pos_y))
-                # self.get_logger().info(f"X: {self.laser_x}, Y: {self.laser_y}")
-                # else:
-                #     logging.error("Failed")
             except Exception as e:
-                # time.sleep(1)
                 self.get_logger().info(f"Exception during Modbus read: {e}")
+
+        self.Kalman_Filter(self.laser_x, self.laser_y)
 
         self.time = time.time()
         self.delta_time = self.time - self.prev_time
@@ -73,13 +125,14 @@ class Laser_Publisher(Node):
         self.delta_pos_x = self.laser_x - self.prev_laser_x
         self.delta_pos_y = self.laser_y - self.prev_laser_y
 
-        self.pos_x = self.pos_x + self.delta_pos_x
-        self.pos_y = self.pos_y + self.delta_pos_y
+        self.pos_x = self.laser_x
+        self.pos_y = self.laser_y
 
-        self.prev_laser_x = self.laser_x
-        self.prev_laser_y = self.laser_y
+        self.prev_laser_x = self.pos_x
+        self.prev_laser_y = self.pos_y
 
         self.Odom_msg.header.stamp = self.get_clock().now().to_msg()
+
         self.Odom_msg.header.frame_id = "Odom"
         self.Odom_msg.child_frame_id = "base_link"
 
@@ -87,23 +140,23 @@ class Laser_Publisher(Node):
         self.Odom_msg.pose.pose.position.y = self.pos_y
         self.Odom_msg.pose.pose.position.z = 0.0
 
-        self.Odom_msg.pose.covariance = [0.001, 0.0, 0.0, 0.0, 0.0, 0.0,
-                                         0.0, 0.001, 0.0, 0.0, 0.0, 0.0,
-                                         0.0, 0.0, -1.0, 0.0, 0.0, 0.0,
-                                         0.0, 0.0, 0.0, -1.0, 0.0, 0.0,
-                                         0.0, 0.0, 0.0, 0.0, -1.0, 0.0,
-                                         0.0, 0.0, 0.0, 0.0, 0.0, -1.0,]
+        self.Odom_msg.pose.covariance = [0.001, 0.0  , 0.0 , 0.0 , 0.0 , 0.0 ,
+                                         0.0  , 0.001, 0.0 , 0.0 , 0.0 , 0.0 ,
+                                         0.0  , 0.0  , -1.0, 0.0 , 0.0 , 0.0 ,
+                                         0.0  , 0.0  , 0.0 , -1.0, 0.0 , 0.0 ,
+                                         0.0  , 0.0  , 0.0 , 0.0 , -1.0, 0.0 ,
+                                         0.0  , 0.0  , 0.0 , 0.0 , 0.0 , -1.0,]
 
         self.Odom_msg.twist.twist.linear.x = self.delta_pos_x/self.delta_time
         self.Odom_msg.twist.twist.linear.y = self.delta_pos_y/self.delta_time
         self.Odom_msg.twist.twist.linear.z = 0.0
 
-        self.Odom_msg.twist.covariance = [0.001, 0.0, 0.0, 0.0, 0.0, 0.0,
-                                          0.0, 0.001, 0.0, 0.0, 0.0, 0.0,
-                                          0.0, 0.0, -1.0, 0.0, 0.0, 0.0,
-                                          0.0, 0.0, 0.0, -1.0, 0.0, 0.0,
-                                          0.0, 0.0, 0.0, 0.0, -1.0, 0.0,
-                                          0.0, 0.0, 0.0, 0.0, 0.0, -1.0,]
+        self.Odom_msg.twist.covariance = [0.001, 0.0  , 0.0 , 0.0 , 0.0 , 0.0 ,
+                                          0.0  , 0.001, 0.0 , 0.0 , 0.0 , 0.0 ,
+                                          0.0  , 0.0  , -1.0, 0.0 , 0.0 , 0.0 ,
+                                          0.0  , 0.0  , 0.0 , -1.0, 0.0 , 0.0 ,
+                                          0.0  , 0.0  , 0.0 , 0.0 , -1.0, 0.0 ,
+                                          0.0  , 0.0  , 0.0 , 0.0 , 0.0 , -1.0,]
 
         self.Odom_msg.pose.pose.orientation.x = 0.0
         self.Odom_msg.pose.pose.orientation.y = 0.0

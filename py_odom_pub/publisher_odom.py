@@ -100,10 +100,8 @@ class Odom_Publisher(Node):
         self.prev_imu_yaw = self.imu_yaw
         self.prev_time = self.time
 
-        # self.get_logger().info('odom_x:"%f" odom_y"%f" imu_yaw"%f"' % (self.Odom_msg.pose.pose.position.x  , self.Odom_msg.pose.pose.position.y , self.imu_yaw))
-
-
     def timer_callback(self):
+        
         if(self.Odom_msg.pose.pose.position.x == 0.0 and self.Odom_msg.pose.pose.position.y== 0.0):
             self.error_over_time = 0.0
         else:

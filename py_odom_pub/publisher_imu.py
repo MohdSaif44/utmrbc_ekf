@@ -36,7 +36,7 @@ class Imu_Publisher(Node):
         self.create_subscription(RbcOdometry, '/ekf_input', self.subscriber_callback, qos_profile)
 
     def subscriber_callback(self, msg):
-        # msg = RbcOdometry()
+
         self.Imu_msg.header.stamp = self.get_clock().now().to_msg()
         self.Imu_msg.header.frame_id = "base_link"
 
@@ -44,9 +44,9 @@ class Imu_Publisher(Node):
         self.Imu_msg.angular_velocity.y = msg.imu_angular_vy
         self.Imu_msg.angular_velocity.z = msg.imu_angular_vz
 
-        self.Imu_msg.angular_velocity_covariance = np.array([0.001, 0.0, 0.0,
-                                                             0.0, 0.001, 0.0,
-                                                             0.0, 0.0, 0.001], dtype=np.float64)
+        self.Imu_msg.angular_velocity_covariance    = np.array([0.001, 0.0, 0.0,
+                                                                0.0, 0.001, 0.0,
+                                                                0.0, 0.0, 0.001], dtype=np.float64)
         
         self.Imu_msg.linear_acceleration.x =  msg.imu_linear_ax
         self.Imu_msg.linear_acceleration.y =  msg.imu_linear_ay
@@ -61,11 +61,9 @@ class Imu_Publisher(Node):
         self.Imu_msg.orientation.z =  msg.imu_orientation_z
         self.Imu_msg.orientation.w =  msg.imu_orientation_w
 
-        self.Imu_msg._orientation_covariance = np.array([0.001, 0.0, 0.0,
-                                                         0.0, 0.001, 0.0,
-                                                         0.0, 0.0, 0.001], dtype=np.float64)
-
-        # self.get_logger().info('acc_x:"%f" acc_y:"%f" yaw:"%f"' % (self.Imu_msg.linear_acceleration.x , self.Imu_msg.linear_acceleration.y, msg.imu_yaw)) 
+        self.Imu_msg._orientation_covariance        = np.array([0.001, 0.0, 0.0,
+                                                                0.0, 0.001, 0.0,
+                                                                0.0, 0.0, 0.001], dtype=np.float64)
  
     def timer_callback(self):
         self.publisher.publish(self.Imu_msg)
